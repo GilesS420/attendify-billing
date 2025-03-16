@@ -1,0 +1,44 @@
+# FOSSBilling Docker Compose configuration
+version: '3'
+
+services:
+  fossbilling:
+    image: fossbilling/fossbilling:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - fossbilling_data:/var/www/html
+    environment:
+      - DB_TYPE=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=fossbilling
+      - DB_USER=fossuser
+      - DB_PASS=fosspass
+      - BB_URL=http://localhost:8080
+      - BB_PATH=/var/www/html
+    depends_on:
+      - mysql
+    networks:
+      - fossbilling_network
+  
+  mysql:
+    image: mariadb:10.5
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass
+      - MYSQL_DATABASE=fossbilling
+      - MYSQL_USER=fossuser
+      - MYSQL_PASSWORD=fosspass
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - fossbilling_network
+
+networks:
+  fossbilling_network:
+    driver: bridge
+
+volumes:
+  db_data:
+  fossbilling_data:
