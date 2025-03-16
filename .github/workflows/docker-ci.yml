@@ -1,0 +1,38 @@
+name: Docker CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'Docker/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'Docker/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and start containers
+        run: |
+          cd Docker/fossbilling-docker
+          docker-compose build
+          docker-compose up -d
+
+      - name: Wait for application to start
+        run: |
+          sleep 30  # Give some time for services to start
+
+      - name: Test if application is responding
+        run: |
+          curl -f http://localhost:8080 || exit 1
+
+      - name: Clean up
+        run: |
+          cd Docker/fossbilling-docker
+          docker-compose down 
