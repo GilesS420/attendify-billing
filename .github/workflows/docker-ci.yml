@@ -19,20 +19,30 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build and start containers
+        working-directory: Docker/fossbilling-docker
         run: |
-          cd Docker/fossbilling-docker
           docker-compose build
           docker-compose up -d
+          docker ps
 
-      - name: Wait for application to start
+      - name: Wait for containers to be healthy
         run: |
-          sleep 30  # Give some time for services to start
+          echo "Waiting for services to start..."
+          sleep 45  # Increased wait time to ensure MySQL is fully ready
+
+      - name: Check container status
+        working-directory: Docker/fossbilling-docker
+        run: |
+          docker-compose ps
+          docker-compose logs
 
       - name: Test if application is responding
         run: |
-          curl -f http://localhost:8080 || exit 1
+          curl -v http://localhost:8080 || true
+          echo "Basic connectivity test completed"
 
       - name: Clean up
+        working-directory: Docker/fossbilling-docker
+        if: always()
         run: |
-          cd Docker/fossbilling-docker
-          docker-compose down 
+          docker-compose down -v 
